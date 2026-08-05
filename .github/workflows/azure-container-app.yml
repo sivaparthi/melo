@@ -44,8 +44,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Prisma runtime dependency
+        run: sudo apt-get update && sudo apt-get install --yes openssl
+
       - name: Generate Prisma client
         run: npm run prisma:generate --workspace api
+
+      - name: Build shared contracts
+        run: npm run build --workspace @emote/contracts
 
       - name: Lint
         run: |
