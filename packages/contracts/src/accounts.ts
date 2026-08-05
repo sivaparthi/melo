@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { avatarStyleSchema } from './emotions';
+import { avatarStyleSchema, skinToneSchema } from './emotions';
 
 export const usernameSchema = z
   .string()
@@ -14,6 +14,7 @@ export const publicProfileSchema = z.object({
   username: usernameSchema,
   displayName: z.string().trim().min(1).max(40),
   avatarStyle: avatarStyleSchema,
+  skinTone: skinToneSchema,
   imageUrl: z.string().url().nullable(),
 });
 export type PublicProfile = z.infer<typeof publicProfileSchema>;
@@ -27,6 +28,7 @@ export const updateProfileSchema = z.object({
   username: usernameSchema.optional(),
   displayName: z.string().trim().min(1).max(40).optional(),
   avatarStyle: avatarStyleSchema.optional(),
+  skinTone: skinToneSchema.optional(),
 }).refine((value) => Object.keys(value).length > 0, 'Provide at least one profile change.');
 export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 

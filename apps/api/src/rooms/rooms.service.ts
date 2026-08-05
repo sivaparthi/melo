@@ -199,6 +199,7 @@ export class RoomsService {
         username: user.username,
         displayName: user.displayName,
         avatarStyle: user.avatarStyle,
+        skinTone: user.skinTone,
         imageUrl: user.imageUrl,
       })),
     };

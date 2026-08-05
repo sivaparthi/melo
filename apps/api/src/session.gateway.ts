@@ -82,6 +82,7 @@ export class SessionGateway implements OnGatewayDisconnect {
       id: user.id,
       displayName: user.displayName,
       avatarStyle: user.avatarStyle,
+      skinTone: user.skinTone,
       emotion: room.get(user.id)?.emotion ?? 'neutral',
       connected: true,
     });

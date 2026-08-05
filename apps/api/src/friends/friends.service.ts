@@ -18,6 +18,7 @@ const publicUserSelect = {
   username: true,
   displayName: true,
   avatarStyle: true,
+  skinTone: true,
   imageUrl: true,
 } satisfies Prisma.UserSelect;
 

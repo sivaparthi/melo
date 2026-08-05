@@ -9,6 +9,7 @@ const user: CurrentUser = {
   username: 'user_a',
   displayName: 'User A',
   avatarStyle: 'female',
+  skinTone: 'medium',
   imageUrl: null,
 };
 

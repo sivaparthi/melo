@@ -12,6 +12,14 @@ enum AvatarStyle {
   female
 }
 
+enum SkinTone {
+  light
+  mediumLight
+  medium
+  mediumDark
+  dark
+}
+
 enum FriendRequestStatus {
   pending
   accepted
@@ -42,6 +50,7 @@ model User {
   username           String               @unique
   displayName        String
   avatarStyle        AvatarStyle          @default(female)
+  skinTone           SkinTone             @default(medium)
   imageUrl           String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt

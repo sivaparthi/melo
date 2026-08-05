@@ -1,6 +1,6 @@
 import { LogOut, Settings, UserRound, UsersRound, Wifi, WifiOff } from 'lucide-react'
 import { useRef, useState } from 'react'
-import type { PublicProfile, RoomSummary } from '@emote/contracts'
+import type { PublicProfile, RoomSummary, SkinTone } from '@emote/contracts'
 import './App.css'
 import { EmotionAvatar } from './components/EmotionAvatar'
 import { AuthScreen } from './features/auth/AuthScreen'
@@ -10,6 +10,14 @@ import { RoomsPanel } from './features/rooms/RoomsPanel'
 import { EmotionPalette } from './features/session/EmotionPalette'
 import { useSessionSocket } from './features/session/useSessionSocket'
 import { apiRequest } from './lib/api'
+
+const skinTones: readonly { id: SkinTone; label: string }[] = [
+  { id: 'light', label: 'Light' },
+  { id: 'mediumLight', label: 'Medium light' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'mediumDark', label: 'Medium dark' },
+  { id: 'dark', label: 'Dark' },
+]
 
 function App() {
   const auth = useAuth()
@@ -86,7 +94,7 @@ function SessionApp({ user, authError, onUpdateProfile, onLogout }: SessionAppPr
           {!activeRoom ? <div className="no-room-state"><MessageCircleIcon /><strong>No room selected</strong><span>Open a private conversation from the panel.</span></div> : <div className="avatar-grid" aria-live="polite">
             {participants.length > 0 ? participants.map((participant) => (
               <article className="participant" key={participant.id}>
-                <EmotionAvatar participant={participant} />
+                <EmotionAvatar participant={participant.id === user.id ? { ...participant, avatarStyle: user.avatarStyle, skinTone: user.skinTone } : participant} />
                 <div className="participant-meta">
                   <strong>{participant.id === user.id ? `${participant.displayName} (you)` : participant.displayName}</strong>
                   <span>{participant.connected ? 'Present' : 'Reconnecting'}</span>
@@ -108,6 +116,14 @@ function SessionApp({ user, authError, onUpdateProfile, onLogout }: SessionAppPr
             <legend>Avatar</legend>
             <button className={user.avatarStyle === 'female' ? 'selected' : ''} type="button" aria-pressed={user.avatarStyle === 'female'} onClick={() => void onUpdateProfile({ avatarStyle: 'female' })}><span className="mini-avatar mini-avatar--female" aria-hidden="true" />Female</button>
             <button className={user.avatarStyle === 'male' ? 'selected' : ''} type="button" aria-pressed={user.avatarStyle === 'male'} onClick={() => void onUpdateProfile({ avatarStyle: 'male' })}><span className="mini-avatar mini-avatar--male" aria-hidden="true" />Male</button>
+          </fieldset>
+          <fieldset className="skin-tone-choice">
+            <legend>Skin tone</legend>
+            {skinTones.map((tone) => (
+              <button className={user.skinTone === tone.id ? 'selected' : ''} data-tone={tone.id} key={tone.id} type="button" aria-label={tone.label} aria-pressed={user.skinTone === tone.id} title={tone.label} onClick={() => void onUpdateProfile({ skinTone: tone.id })}>
+                <span aria-hidden="true" />
+              </button>
+            ))}
           </fieldset>
           <RoomsPanel activeRoomId={activeRoom?.id ?? null} refreshKey={roomsRefreshKey} onSelect={setActiveRoom} />
           <FriendsPanel onOpenConversation={openFriendConversation} />

@@ -3,6 +3,9 @@ import { z } from 'zod';
 export const avatarStyleSchema = z.enum(['male', 'female']);
 export type AvatarStyle = z.infer<typeof avatarStyleSchema>;
 
+export const skinToneSchema = z.enum(['light', 'mediumLight', 'medium', 'mediumDark', 'dark']);
+export type SkinTone = z.infer<typeof skinToneSchema>;
+
 export const emotionIds = [
   'neutral',
   'joy',

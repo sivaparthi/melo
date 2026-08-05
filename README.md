@@ -75,6 +75,44 @@ Deploy through the [Azure portal](https://portal.azure.com):
 
 The container runs pending Prisma migrations before starting NestJS. React, REST endpoints, and Socket.IO are served by the same container and domain.
 
+### Continuous deployment to Azure
+
+The [GitHub Actions workflow](.github/workflows/azure-container-app.yml) validates every pull request. A push to `main` builds the Docker image, pushes both an immutable commit tag and `latest` to `melocr`, updates `melocontainerapp`, and checks the deployed `/health` endpoint. Prisma migrations run inside the new container before NestJS starts.
+
+The workflow authenticates without a client secret by using GitHub OIDC and a user-assigned Azure identity. Create the identity and its narrowly scoped role assignments once:
+
+```powershell
+$subscriptionId = "4a75dda4-8f2e-41e1-9cdb-683b5e971319"
+$tenantId = "7ef31e11-917e-4e49-b2fc-0b41303fee6f"
+$repository = "sivaparthi/melo"
+
+az account set --subscription $subscriptionId
+
+$identity = az identity create `
+	--name melo-github `
+	--resource-group Melo `
+	--query "{clientId:clientId,principalId:principalId,id:id}" `
+	| ConvertFrom-Json
+
+az identity federated-credential create `
+	--name melo-main `
+	--identity-name melo-github `
+	--resource-group Melo `
+	--issuer "https://token.actions.githubusercontent.com" `
+	--subject "repo:${repository}:environment:production" `
+	--audiences "api://AzureADTokenExchange"
+
+$registryId = az acr show --name melocr --query id --output tsv
+$containerAppId = az containerapp show --name melocontainerapp --resource-group Melo --query id --output tsv
+
+az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role AcrPush --scope $registryId
+az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role Contributor --scope $containerAppId
+```
+
+The workflow contains the Azure client, tenant, and subscription IDs because they are identifiers rather than credentials; no Azure client secret is stored in GitHub. The `production` environment is created when the workflow first runs and can later be given approval or branch protection rules under **Settings > Environments**.
+
+Commit and push to `main` to deploy. Review progress under the repository's **Actions** tab. Azure keeps the previous Container App revision available for rollback, while each deployment references its immutable commit image tag.
+
 ## Deploy to shivnpsiv.com
 
 The production deployment uses one Render web service for React, NestJS, and Socket.IO, plus Render PostgreSQL. The included [render.yaml](render.yaml) provisions both services. Keeping the browser and API on one origin makes secure cookies and WebSockets work without cross-domain configuration.

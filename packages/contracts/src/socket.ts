@@ -1,10 +1,11 @@
 import { z } from 'zod';
-import { avatarStyleSchema, emotionIdSchema } from './emotions';
+import { avatarStyleSchema, emotionIdSchema, skinToneSchema } from './emotions';
 
 export const participantSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().trim().min(1).max(40),
   avatarStyle: avatarStyleSchema,
+  skinTone: skinToneSchema,
   emotion: emotionIdSchema,
   connected: z.boolean(),
 });
