@@ -36,6 +36,45 @@ http://localhost:3001/auth/google/callback
 
 Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/api/.env`. Without them, the API returns `503` and local development login remains available. Development login is disabled when `NODE_ENV=production`.
 
+## Deploy with Docker to Azure
+
+Azure Container Apps can run the included [Dockerfile](Dockerfile) with HTTPS ingress and WebSocket support. Use Azure Database for PostgreSQL Flexible Server for persistent storage. Container Apps can scale to zero, but PostgreSQL is billed separately unless covered by an Azure credit or free offer.
+
+Test the production image locally:
+
+```powershell
+docker build -t melo:azure .
+docker run --rm -p 3000:3000 `
+	-e DATABASE_URL="postgresql://melo:melo@host.docker.internal:5433/melo" `
+	-e WEB_ORIGIN="http://localhost:3000" `
+	melo:azure
+```
+
+Deploy through the [Azure portal](https://portal.azure.com):
+
+1. Create a resource group in a nearby region, such as **Central India**.
+2. Create **Azure Database for PostgreSQL flexible server**, select PostgreSQL 16 and a small Burstable SKU, create a database named `melo`, require TLS, and permit the Container Apps environment to connect. For an initial public-network deployment, enable **Allow public access from Azure services**; use private networking for production isolation.
+3. Create **Azure Container Registry**, then use its **Quick start > Build image** workflow or `az acr build --registry <registry> --image melo:latest .` from this repository.
+4. Create **Container Apps Environment**, then create a **Container App** named `melo-app` from `<registry>.azurecr.io/melo:latest`.
+5. Enable external HTTP ingress, set the target port to `3000`, and start with one replica if uninterrupted WebSocket sessions matter. Scale-to-zero is cheaper but disconnects sessions while the app is idle and adds cold-start latency.
+6. Add these Container App secrets: `database-url`, `google-client-id`, and `google-client-secret`. Map them to environment variables as shown below. Store secret values only in Azure, not in source control.
+
+| Environment variable   | Value                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | Secret reference to `postgresql://<user>:<password>@<server>.postgres.database.azure.com:5432/melo?sslmode=require` |
+| `GOOGLE_CLIENT_ID`     | Secret reference to the Google OAuth client ID                                                                      |
+| `GOOGLE_CLIENT_SECRET` | Secret reference to the rotated Google OAuth client secret                                                          |
+| `GOOGLE_CALLBACK_URL`  | `https://shivnpsiv.com/auth/google/callback`                                                                        |
+| `WEB_ORIGIN`           | `https://shivnpsiv.com`                                                                                             |
+| `SESSION_COOKIE_NAME`  | `melo_session`                                                                                                      |
+| `SESSION_TTL_DAYS`     | `30`                                                                                                                |
+
+7. Confirm the generated `azurecontainerapps.io` URL returns a successful response from `/health`.
+8. Under **Networking > Custom domains**, add `shivnpsiv.com` with an Azure-managed certificate. In Cloudflare, create the `A` and `TXT` records Azure displays. Keep the records **DNS only** so Azure can issue and renew the certificate; if Cloudflare proxying is enabled later, certificate renewal requirements must still remain satisfied.
+9. Add `https://shivnpsiv.com` and `https://shivnpsiv.com/auth/google/callback` to the Google OAuth client's authorized origin and redirect URI respectively.
+
+The container runs pending Prisma migrations before starting NestJS. React, REST endpoints, and Socket.IO are served by the same container and domain.
+
 ## Deploy to shivnpsiv.com
 
 The production deployment uses one Render web service for React, NestJS, and Socket.IO, plus Render PostgreSQL. The included [render.yaml](render.yaml) provisions both services. Keeping the browser and API on one origin makes secure cookies and WebSockets work without cross-domain configuration.
