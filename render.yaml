@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+
+databases:
+  - name: melo-postgres
+    plan: free
+    postgresMajorVersion: "16"
+    databaseName: melo
+    user: melo
+    ipAllowList: []
+
+services:
+  - type: web
+    name: melo-app
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run db:deploy --workspace api && npm run start:prod --workspace api
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    domains:
+      - shivnpsiv.com
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.0
+      - key: NODE_ENV
+        value: production
+      - key: WEB_ORIGIN
+        value: https://shivnpsiv.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: melo-postgres
+          property: connectionString
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        value: https://shivnpsiv.com/auth/google/callback
+      - key: SESSION_COOKIE_NAME
+        value: melo_session
+      - key: SESSION_TTL_DAYS
+        value: 30
