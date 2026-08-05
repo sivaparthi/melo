@@ -54,8 +54,8 @@ Deploy through the [Azure portal](https://portal.azure.com):
 
 1. Create a resource group in a nearby region, such as **Central India**.
 2. Create **Azure Database for PostgreSQL flexible server**, select PostgreSQL 16 and a small Burstable SKU, create a database named `melo`, require TLS, and permit the Container Apps environment to connect. For an initial public-network deployment, enable **Allow public access from Azure services**; use private networking for production isolation.
-3. Create **Azure Container Registry**, then use its **Quick start > Build image** workflow or `az acr build --registry <registry> --image melo:latest .` from this repository.
-4. Create **Container Apps Environment**, then create a **Container App** named `melo-app` from `<registry>.azurecr.io/melo:latest`.
+3. Create **Azure Container Registry**, then use its **Quick start > Build image** workflow or `az acr build --registry melocr --image melo:latest .` from this repository.
+4. Create **Container Apps Environment**, then create a **Container App** named `melo-app` from `melocr.azurecr.io/melo:latest`.
 5. Enable external HTTP ingress, set the target port to `3000`, and start with one replica if uninterrupted WebSocket sessions matter. Scale-to-zero is cheaper but disconnects sessions while the app is idle and adds cold-start latency.
 6. Add these Container App secrets: `database-url`, `google-client-id`, and `google-client-secret`. Map them to environment variables as shown below. Store secret values only in Azure, not in source control.
 
