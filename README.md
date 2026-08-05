@@ -84,7 +84,7 @@ The workflow authenticates without a client secret by using GitHub OIDC and a us
 ```powershell
 $subscriptionId = "4a75dda4-8f2e-41e1-9cdb-683b5e971319"
 $tenantId = "7ef31e11-917e-4e49-b2fc-0b41303fee6f"
-$repository = "sivaparthi/melo"
+$repositorySubject = "repo:sivaparthi@86819116/melo@1324397721:environment:production"
 
 az account set --subscription $subscriptionId
 
@@ -95,11 +95,11 @@ $identity = az identity create `
 	| ConvertFrom-Json
 
 az identity federated-credential create `
-	--name melo-main `
+	--name melo-main-immutable `
 	--identity-name melo-github `
 	--resource-group Melo `
 	--issuer "https://token.actions.githubusercontent.com" `
-	--subject "repo:${repository}:environment:production" `
+	--subject $repositorySubject `
 	--audiences "api://AzureADTokenExchange"
 
 $registryId = az acr show --name melocr --query id --output tsv
