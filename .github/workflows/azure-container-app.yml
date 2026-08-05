@@ -89,6 +89,15 @@ jobs:
 
       - name: Sign in to Azure Container Registry
         run: |
+          DISCOVERED_LOGIN_SERVER=$(az acr show \
+            --name "$ACR_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query loginServer \
+            --output tsv)
+          if [ "$DISCOVERED_LOGIN_SERVER" != "$ACR_LOGIN_SERVER" ]; then
+            echo "Configured ACR login server '$ACR_LOGIN_SERVER' does not match Azure '$DISCOVERED_LOGIN_SERVER'." >&2
+            exit 1
+          fi
           ACR_TOKEN=$(az acr login \
             --name "$ACR_NAME" \
             --expose-token \
