@@ -141,6 +141,14 @@
 
 .profile-panel { align-self: start; padding: 20px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); display: flex; flex-direction: column; gap: 20px; }
 .profile-panel h2 { margin-top: 4px; font-size: 23px; line-height: 1.05; }
+.profile-dialog-backdrop { padding: 24px; position: fixed; z-index: 100; inset: 0; overflow-y: auto; display: grid; place-items: center; background: rgba(23,35,30,.64); }
+.profile-dialog { width: min(100%,560px); padding: 26px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: 0 24px 70px rgba(23,35,30,.26); }
+.profile-dialog-heading { display: flex; align-items: start; justify-content: space-between; gap: 20px; }
+.profile-dialog-heading h2 { margin-top: 4px; font-size: 28px; }
+.profile-intro { margin-top: 8px; color: var(--muted); font-size: 13px; }
+.profile-dialog-error { margin: 16px 0 0; }
+.profile-settings-form { margin-top: 22px; display: flex; flex-direction: column; gap: 20px; }
+.profile-name-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .name-field { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; }
 .name-field input { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); font-size: 14px; text-transform: none; letter-spacing: 0; }
 .avatar-choice { margin: 0; padding: 0; border: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -247,6 +255,6 @@
 @keyframes tear-fall { 0%{opacity:0;transform:translateY(-2px)}25%{opacity:1}100%{opacity:0;transform:translateY(18px)} }
 @keyframes pulse { 50%{opacity:.3;transform:scale(.65)} }
 @media(max-width:860px){.topbar{grid-template-columns:1fr 1fr;padding:0 16px}.room-title{display:none}.session-layout{padding:22px 16px;grid-template-columns:1fr}.profile-panel{order:-1;display:grid;grid-template-columns:1fr 1fr;align-items:end}.friends-section,.rooms-section{grid-column:1/-1}.profile-panel .privacy-note,.leave-button{display:none}.emotion-dock{padding-inline:16px}.dock-heading>span{display:none}}
-@media(max-width:540px){.app-shell{padding-bottom:200px}.connection-pill{width:32px;padding:0;justify-content:center;font-size:0}.stage-heading h1{font-size:27px}.avatar-grid{grid-template-columns:1fr;padding-inline:8px}.participant,.invite-tile{min-height:224px}.profile-panel{grid-template-columns:1fr}.profile-panel>div:first-child{display:none}.avatar-choice{grid-column:1}.emotion-groups{gap:8px}.emotion-button{min-width:58px}}
+@media(max-width:540px){.app-shell{padding-bottom:200px}.connection-pill{width:32px;padding:0;justify-content:center;font-size:0}.stage-heading h1{font-size:27px}.avatar-grid{grid-template-columns:1fr;padding-inline:8px}.participant,.invite-tile{min-height:224px}.profile-panel{grid-template-columns:1fr}.avatar-choice{grid-column:1}.profile-dialog-backdrop{padding:12px;place-items:start center}.profile-dialog{padding:22px 18px}.profile-name-fields{grid-template-columns:1fr}.emotion-groups{gap:8px}.emotion-button{min-width:58px}}
 @media(max-width:540px){.auth-panel{padding:25px 20px}.auth-panel h1{font-size:31px}.friends-section{grid-column:1}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

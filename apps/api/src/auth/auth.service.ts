@@ -36,7 +36,6 @@ export class AuthService {
       const user = await this.prisma.user.update({
         where: { id: account.userId },
         data: {
-          displayName: identity.displayName,
           imageUrl: identity.imageUrl,
         },
       });
@@ -137,6 +136,7 @@ export class AuthService {
         data: {
           ...parsed.data,
           avatarStyle: parsed.data.avatarStyle,
+          profileCompleted: true,
         },
       });
       return this.toCurrentUser(user);
@@ -196,6 +196,7 @@ export class AuthService {
       avatarStyle: user.avatarStyle,
       skinTone: user.skinTone,
       imageUrl: user.imageUrl,
+      profileCompleted: user.profileCompleted,
     };
   }
 }

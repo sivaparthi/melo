@@ -52,6 +52,7 @@ model User {
   avatarStyle        AvatarStyle          @default(female)
   skinTone           SkinTone             @default(medium)
   imageUrl           String?
+  profileCompleted   Boolean              @default(false)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   accounts           OAuthAccount[]

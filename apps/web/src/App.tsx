@@ -1,6 +1,6 @@
-import { LogOut, Settings, UserRound, UsersRound, Wifi, WifiOff } from 'lucide-react'
+import { LogOut, Settings, UserRound, UsersRound, Wifi, WifiOff, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import type { PublicProfile, RoomSummary, SkinTone } from '@emote/contracts'
+import type { AvatarStyle, CurrentUser, PublicProfile, RoomSummary, SkinTone, UpdateProfile } from '@emote/contracts'
 import './App.css'
 import { EmotionAvatar } from './components/EmotionAvatar'
 import { AuthScreen } from './features/auth/AuthScreen'
@@ -38,13 +38,14 @@ interface SessionAppProps {
 function SessionApp({ user, authError, onUpdateProfile, onLogout }: SessionAppProps) {
   const [activeRoom, setActiveRoom] = useState<RoomSummary | null>(null)
   const [roomsRefreshKey, setRoomsRefreshKey] = useState(0)
+  const [profileOpen, setProfileOpen] = useState(!user.profileCompleted)
   const accountMenuRef = useRef<HTMLDetailsElement>(null)
   const { participants, connectionState, error, setEmotion } = useSessionSocket(activeRoom?.id ?? null)
   const ownEmotion = participants.find((participant) => participant.id === user.id)?.emotion ?? 'neutral'
 
   function openProfileSettings() {
     accountMenuRef.current?.removeAttribute('open')
-    document.getElementById('profile-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setProfileOpen(true)
   }
 
   async function openFriendConversation(friend: PublicProfile) {
@@ -104,27 +105,7 @@ function SessionApp({ user, authError, onUpdateProfile, onLogout }: SessionAppPr
           </div>}
         </section>
 
-        <aside className="profile-panel" id="profile-panel" aria-labelledby="profile-title">
-          <div><span className="eyebrow">Your profile</span><h2 id="profile-title">Show up as yourself</h2></div>
-          <label className="name-field">Display name
-            <input defaultValue={user.displayName} maxLength={40} onBlur={(event) => void onUpdateProfile({ displayName: event.target.value })} />
-          </label>
-          <label className="name-field">Username
-            <input defaultValue={user.username} maxLength={24} onBlur={(event) => void onUpdateProfile({ username: event.target.value.toLowerCase() })} />
-          </label>
-          <fieldset className="avatar-choice">
-            <legend>Avatar</legend>
-            <button className={user.avatarStyle === 'female' ? 'selected' : ''} type="button" aria-pressed={user.avatarStyle === 'female'} onClick={() => void onUpdateProfile({ avatarStyle: 'female' })}><span className="mini-avatar mini-avatar--female" aria-hidden="true" />Female</button>
-            <button className={user.avatarStyle === 'male' ? 'selected' : ''} type="button" aria-pressed={user.avatarStyle === 'male'} onClick={() => void onUpdateProfile({ avatarStyle: 'male' })}><span className="mini-avatar mini-avatar--male" aria-hidden="true" />Male</button>
-          </fieldset>
-          <fieldset className="skin-tone-choice">
-            <legend>Skin tone</legend>
-            {skinTones.map((tone) => (
-              <button className={user.skinTone === tone.id ? 'selected' : ''} data-tone={tone.id} key={tone.id} type="button" aria-label={tone.label} aria-pressed={user.skinTone === tone.id} title={tone.label} onClick={() => void onUpdateProfile({ skinTone: tone.id })}>
-                <span aria-hidden="true" />
-              </button>
-            ))}
-          </fieldset>
+        <aside className="profile-panel" aria-label="Conversations and friends">
           <RoomsPanel activeRoomId={activeRoom?.id ?? null} refreshKey={roomsRefreshKey} onSelect={setActiveRoom} />
           <FriendsPanel onOpenConversation={openFriendConversation} />
           <div className="privacy-note"><strong>Your feelings stay yours.</strong><span>Only you can see your recap after this session.</span></div>
@@ -133,6 +114,76 @@ function SessionApp({ user, authError, onUpdateProfile, onLogout }: SessionAppPr
       </main>
 
       <EmotionPalette selectedEmotion={ownEmotion} disabled={!activeRoom || connectionState !== 'connected'} onSelect={setEmotion} />
+      {profileOpen && (
+        <ProfileSettings
+          user={user}
+          required={!user.profileCompleted}
+          error={authError}
+          onClose={() => setProfileOpen(false)}
+          onSave={onUpdateProfile}
+        />
+      )}
+    </div>
+  )
+}
+
+interface ProfileSettingsProps {
+  user: CurrentUser
+  required: boolean
+  error: string | null
+  onClose: () => void
+  onSave: (changes: UpdateProfile) => Promise<boolean>
+}
+
+function ProfileSettings({ user, required, error, onClose, onSave }: ProfileSettingsProps) {
+  const [displayName, setDisplayName] = useState(user.displayName)
+  const [username, setUsername] = useState(user.username)
+  const [avatarStyle, setAvatarStyle] = useState<AvatarStyle>(user.avatarStyle)
+  const [skinTone, setSkinTone] = useState<SkinTone>(user.skinTone)
+  const [saving, setSaving] = useState(false)
+
+  async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSaving(true)
+    const saved = await onSave({ displayName, username, avatarStyle, skinTone })
+    setSaving(false)
+    if (saved) onClose()
+  }
+
+  return (
+    <div className="profile-dialog-backdrop" role="presentation">
+      <section className="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-settings-title">
+        <div className="profile-dialog-heading">
+          <div><span className="eyebrow">{required ? 'Welcome to Melo' : 'Your profile'}</span><h2 id="profile-settings-title">{required ? 'Set up your profile' : 'Profile settings'}</h2></div>
+          {!required && <button className="icon-button" type="button" title="Close" aria-label="Close profile settings" onClick={onClose}><X size={18} /></button>}
+        </div>
+        {required && <p className="profile-intro">Choose how your name and avatar appear before continuing.</p>}
+        {error && <div className="notice profile-dialog-error" role="alert">{error}</div>}
+        <form className="profile-settings-form" onSubmit={saveProfile}>
+          <div className="profile-name-fields">
+            <label className="name-field">Display name
+              <input autoFocus value={displayName} required maxLength={40} onChange={(event) => setDisplayName(event.target.value)} />
+            </label>
+            <label className="name-field">Username
+              <input value={username} required minLength={3} maxLength={24} pattern="[a-z0-9_]+" title="Use only lowercase letters, numbers, and underscores." onChange={(event) => setUsername(event.target.value.toLowerCase())} />
+            </label>
+          </div>
+          <fieldset className="avatar-choice">
+            <legend>Avatar</legend>
+            <button className={avatarStyle === 'female' ? 'selected' : ''} type="button" aria-pressed={avatarStyle === 'female'} onClick={() => setAvatarStyle('female')}><span className="mini-avatar mini-avatar--female" aria-hidden="true" />Female</button>
+            <button className={avatarStyle === 'male' ? 'selected' : ''} type="button" aria-pressed={avatarStyle === 'male'} onClick={() => setAvatarStyle('male')}><span className="mini-avatar mini-avatar--male" aria-hidden="true" />Male</button>
+          </fieldset>
+          <fieldset className="skin-tone-choice">
+            <legend>Skin tone</legend>
+            {skinTones.map((tone) => (
+              <button className={skinTone === tone.id ? 'selected' : ''} data-tone={tone.id} key={tone.id} type="button" aria-label={tone.label} aria-pressed={skinTone === tone.id} title={tone.label} onClick={() => setSkinTone(tone.id)}>
+                <span aria-hidden="true" />
+              </button>
+            ))}
+          </fieldset>
+          <button className="primary-button" type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save profile'}</button>
+        </form>
+      </section>
     </div>
   )
 }

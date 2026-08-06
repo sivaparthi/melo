@@ -11,6 +11,7 @@ const user: CurrentUser = {
   avatarStyle: 'female',
   skinTone: 'medium',
   imageUrl: null,
+  profileCompleted: true,
 };
 
 function socketWithCookie(cookie?: string) {

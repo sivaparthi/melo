@@ -32,8 +32,10 @@ export function useAuth() {
         method: 'PATCH', body: JSON.stringify(changes),
       })
       setUser(updated)
+      return true
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Profile update failed.')
+      return false
     }
   }
 

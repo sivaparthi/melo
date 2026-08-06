@@ -21,6 +21,7 @@ export type PublicProfile = z.infer<typeof publicProfileSchema>;
 
 export const currentUserSchema = publicProfileSchema.extend({
   email: z.string().email(),
+  profileCompleted: z.boolean(),
 });
 export type CurrentUser = z.infer<typeof currentUserSchema>;
 
